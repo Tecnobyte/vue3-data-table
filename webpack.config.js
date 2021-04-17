@@ -1,9 +1,12 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { VueLoaderPlugin } = require("vue-loader");
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require('path');
 
 module.exports = {
-  entry: './src/main.js',
+  entry: {
+    main: './test/main.js'
+  },
   resolve: {
     alias: {
       // this isn't technically needed, since the default `vue` entry for bundlers
@@ -31,7 +34,7 @@ module.exports = {
       filename: "[name].css"
     }),
     new HtmlWebpackPlugin({
-      template: './src/index.html',
+      template: './test/index.html',
     }),
     
   ],

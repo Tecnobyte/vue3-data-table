@@ -9,6 +9,10 @@
     "build": "webpack --mode production --env production",
     "help": "webpack --help"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tecnobyte/vue3-data-table.git"
+  },
   "author": "tecnobyte",
   "license": "ISC",
   "devDependencies": {
