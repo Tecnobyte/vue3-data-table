@@ -8,13 +8,33 @@ import { ClientTable } from './../src/main';
     export default {
         data() {
             return {
-                column: ['id', 'descripcion', 'origen', 'poblacion'],
-                data: [
+                column: [
+                    {
+                        descripcion: 'id',
+                        filter: false,
+                        order: true
+                    },
+                    {
+                        descripcion: 'descripcion',
+                        filter: true,
+                        order: true
+                    },
+                    {
+                        descripcion: 'origen',
+                        filter: true,
+                        order: true
+                    },
+                    {
+                        descripcion: 'poblacion',
+                        filter: false,
+                        order: true
+                    }
+                ], data: [
                     {
                         id: 1,
                         descripcion: 'mexico',
                         origen: 'pais',
-                        poblacion: 100000
+                        poblacion: 100000,
                     },{
                         id: 2,
                         descripcion: 'estados unidos',
@@ -41,9 +61,8 @@ import { ClientTable } from './../src/main';
                         origen: 'pais',
                         poblacion: 600000
                     }
-                ],
-                option:{
-                    filter: ['id', 'origen']
+                ], option:{
+                    time: 1000
 
                 }
             };
