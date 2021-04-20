@@ -4,23 +4,21 @@
             <thead>
                 <!-- seccion para las columnas -->
                 <tr>
-                    <th v-for="(column, i) of columns" :key="i">{{column}}</th>
+                    <th v-for="(column, i) of columns" :key="i">{{column.descripcion}}</th>
                 </tr>
 
                 <!-- seccion para los filtros -->
                 <tr>
-                    <!-- <template v-for="(column) of columns">
-                        <template v-for="(input) of filter">
-                            {{input}}
-
-                        </template>
-                    </template> -->
+                    <th v-for="(column, i) of columns" :key="i">
+                        <input type="text" :name="column.descripcion" v-if="column.filter" v-on:keyup="debounce('key', column.descripcion,$event)">
+                    </th>
                 </tr>
             </thead>
+
             <tbody>
-                <tr v-for="(item, i) of data" :key="i">
+                <tr v-for="(item, i) of data_filter" :key="i">
                     <td v-for="column of columns" :key="column">
-                        {{ item[column] }}
+                        {{ item[column.descripcion] }}
                     </td>
                 </tr>
 
@@ -49,26 +47,62 @@
         data() {
             return {
                 filter: [],
+                _debounce: null,
+                data_filter: []
             };
         },
-        mounted() {
-            if (this.options.hasOwnProperty('filter')){ // --------------- verifico que exista el atributo filtro
-                if (Array.isArray(this.options.filter)){ // -------------- verifico que sea de tipo array
-                    if (this.options.filter.length > 0){// --------------- verifico que tenga datos
-                        for (let column of this.columns ){// ------------- itero columnas
-                            for (let row of this.options.filter){// ------ itero los filtros
-                                this.filter.push({
-                                    column: column,
-                                    filter: column == row
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            console.log(this.filter);
+        created(){
+            this.data_filter = this.data
+        }, mounted() {
+            // if (this.options.hasOwnProperty('filter')){ // --------------- verifico que exista el atributo filtro
+            //     if (Array.isArray(this.options.filter)){ // -------------- verifico que sea de tipo array
+            //         if (this.options.filter.length > 0){// --------------- verifico que tenga datos
+                        
+            //             for (let column of this.columns ){// ------------- itero columnas
+            //                 for (let row of this.options.filter){// ------ itero los filtros
+            //                     // this.filter.push({
+            //                     //     column: column,
+            //                     //     filter: column == row
+            //                     // });
+            //                     console.log(`${row} - ${column} -> ${column == row}`);
+            //                 }
+            //             }
+
+            //         }
+            //     }
+            // }
+            // console.log(this.filter);
         },
         methods: {
+            debounce(type, column,event){
+                if (this._debounce != null){
+                    clearTimeout(this._debounce);
+                    this._debounce == null;
+                }
+                this._debounce = setTimeout(()=>{
+                    if (type == 'key'){
+                        this.search_word(column ,event);
+                    }else if (type == 'order'){
+                        this.order_by(event);
+                    }
+                }, this.options.time);
+            },
+            search_word(column, event){
+                // console.log('search');
+                console.log(event.target.value == '')
+                if (event.target.value != ''){
+                    this.data_filter = this.data.filter(filter => filter[column] == event.target.value );
+                }else{
+                    this.data_filter = this.data;
+                }
+                console.log(this.data_filter);
+            },
+            order_by(event){
+                console.log('sort');
+                console.log(event)
+            },
+
+
 
         }
     };
