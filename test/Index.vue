@@ -1,6 +1,12 @@
 <template>
-  <h1>client table</h1>
-  <client-table :columns="column" :data="data" :options="option"></client-table>
+    <h1>client table</h1>
+    <client-table :columns="column" :data="data" :options="option">
+        <template v-slot:menu="row">
+            <div> 
+                <button @click="pais(row)">seleccion</button>
+            </div>
+        </template>
+    </client-table>
 </template>
 
 <script>
@@ -10,24 +16,29 @@ import { ClientTable } from './../src/main';
             return {
                 column: [
                     {
-                        descripcion: 'id',
+                        description: 'id',
                         filter: false,
-                        order: true
+                        order: false
                     },
                     {
-                        descripcion: 'descripcion',
+                        description: 'descripcion',
                         filter: true,
-                        order: true
+                        order: false
                     },
                     {
-                        descripcion: 'origen',
+                        description: 'origen',
                         filter: true,
-                        order: true
+                        order: false
                     },
                     {
-                        descripcion: 'poblacion',
+                        description: 'poblacion',
                         filter: false,
-                        order: true
+                        order: false
+                    },
+                    {
+                        description: 'menu',
+                        filter: false,
+                        order: false
                     }
                 ], data: [
                     {
@@ -62,25 +73,23 @@ import { ClientTable } from './../src/main';
                         poblacion: 600000
                     }
                 ], option:{
-                    time: 1000
+                    time: 500
 
-                }
+                },
+                seleccion: null,
             };
         },
         components: {
             ClientTable
         },
         setup() {
-            // const count = ref(0);
-            // const inc = () => {
-            //   count.value++;
-            // };
-            // return {
-            //   count,
-            //   inc,
-            // };
-        },
-        mounted() {},
+        }, mounted() {
+
+        }, methods: {
+            pais(row){
+                console.log(row)
+            }
+        }
     };
 </script>
 
