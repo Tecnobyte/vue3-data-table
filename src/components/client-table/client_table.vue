@@ -1,35 +1,33 @@
 <template>
-    <div>
-        <table>
-            <thead>
-                <!-- seccion para las columnas -->
-                <tr>
-                    <th v-for="(column, i) of columns" :key="i">
-                        {{column.description}}
-                        <li v-if="verify_columns_by_order(column)" @click="debounce('order', column.description, $event)">o</li>
-                    </th>
-                </tr>
+    <table class="table-main">
+        <thead>
+            <!-- seccion para las columnas -->
+            <tr class="tr-columns-description">
+                <th v-for="(column, i) of columns" :key="i" class="th-columns-description">
+                    {{column.description}}
+                    <li v-if="verify_columns_by_order(column)" @click="debounce('order', column.description, $event)" class="li-order">o</li>
+                </th>
+            </tr>
 
-                <!-- seccion para los filtros -->
-                <tr>
-                    <th v-for="(column, i) of columns" :key="i">
-                        <input v-if="verify_columns_by_filter(column)" type="text" :name="column.description" v-on:keyup="debounce('key', column.description, $event)">
-                    </th>
-                </tr>
-            </thead>
+            <!-- seccion para los filtros -->
+            <tr class="tr-columns-inputs">
+                <th v-for="(column, i) of columns" :key="i" class="th-columns-inputs">
+                    <input v-if="verify_columns_by_filter(column)" type="text" class="input-filter" :name="column.description" v-on:keyup="debounce('key', column.description, $event)">
+                </th>
+            </tr>
+        </thead>
 
-            <tbody>
-                <tr v-for="(row, i) of data_filter" :key="i">
-                    <td v-for="column of columns" :key="column">
-                        <!-- <slot :name="column.descripcion" :item="{row:row, index:i}"> -->
-                        <slot :name="column.description" :item="row">
-                            {{ row[column.description] }}    
-                        </slot>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <tbody>
+            <tr v-for="(row, i) of data_filter" :key="i" class="tr-row-data">
+                <td v-for="column of columns" :key="column" class="td-row-data">
+                    <!-- <slot :name="column.descripcion" :item="{row:row, index:i}"> -->
+                    <slot :name="column.description" :item="row">
+                        {{ row[column.description] }}    
+                    </slot>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </template>
 
 <script>
@@ -115,5 +113,45 @@
 </script>
 
 <style scoped>
+
+    .table-main{
+
+    }
+
+    .tr-columns-description{
+        
+    }
+
+    .th-columns-description{
+        
+    }
+
+    .li-order{
+        
+    }
+
+    .li-order:hover{
+        cursor: pointer;
+    }
+
+    .tr-columns-inputs{
+        
+    }
+
+    .th-columns-inputs{
+        
+    }
+
+    .input-filter{
+        
+    }
+
+    .tr-row-data{
+        
+    }
+
+    .td-row-data{
+        
+    }
 
 </style>
