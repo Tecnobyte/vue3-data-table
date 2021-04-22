@@ -4,9 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: {
-    main: './test/main.js'
-  },
+  entry: ['@babel/polyfill','./test/main.js'],
   resolve: {
     alias: {
       // this isn't technically needed, since the default `vue` entry for bundlers
