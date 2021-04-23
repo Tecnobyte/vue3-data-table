@@ -1,36 +1,58 @@
 <template>
-    <table class="table-main">
-        <thead>
-            <!-- seccion para las columnas -->
-            <tr class="tr-columns-description">
-                <th v-for="(column, i) of columns" :key="i" class="th-columns-description">
-                    {{column.description}}
-                    <li v-if="verify_columns_by_order(column)" @click="debounce('order', column.description, $event)" class="li-order">o</li>
-                </th>
-            </tr>
+    <div>
 
-            <!-- seccion para los filtros -->
-            <tr class="tr-columns-inputs">
-                <th v-for="(column, i) of columns" :key="i" class="th-columns-inputs">
-                    <input v-if="verify_columns_by_filter(column)" type="text" class="input-filter" :name="column.description" v-on:keyup="debounce('key', column.description, $event)">
-                </th>
-            </tr>
-        </thead>
+        <div>
+            <select v-model="perPage" @change="onChangedPerPage">
+                <option v-for="(page, index) in perPages" :key="index" :value="page">
+                    {{ page }}
+                </option>
+            </select>
+        </div>
 
-        <tbody>
-            <tr v-for="(row, i) of data_filter" :key="i" class="tr-row-data">
-                <td v-for="column of columns" :key="column" class="td-row-data">
-                    <!-- <slot :name="column.descripcion" :item="{row:row, index:i}"> -->
-                    <slot :name="column.description" :item="row">
-                        {{ row[column.description] }}    
-                    </slot>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+        <table class="table-main">
+            <thead>
+                <!-- seccion para las columnas -->
+                <tr class="tr-columns-description">
+                    <th v-for="(column, i) of columns" :key="i" class="th-columns-description">
+                        {{ (column.hasOwnProperty('header') ) ? column.header : column.description}}
+                        <li v-if="VerifyColumnsByOrder(column)" @click="debounce('order', column.description, $event)" class="li-order">o</li>
+                    </th>
+                </tr>
+
+                <!-- seccion para los filtros -->
+                <tr class="tr-columns-inputs">
+                    <th v-for="(column, i) of columns" :key="i" class="th-columns-inputs">
+                        <input v-if="VerifyColumnsByFilter(column)" type="text" class="input-filter" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="debounce('key', column.description, $event)">
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr v-for="(row, i) of dataFilter" :key="i" class="tr-row-data">
+                    <td v-for="column of columns" :key="column" class="td-row-data">
+                        <slot :name="column.description" :row="row" :index="i">
+                            {{ row[column.description] }}    
+                        </slot>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- <div class="center">
+            <div class="pagination">
+                <a href="#">&laquo;</a>
+                <a href="#">&lt;</a>
+                <a v-for="i of totalDate" href="#">{{i}}</a>
+                <a href="#">&gt;</a>
+                <a href="#">&raquo;</a>
+            </div>
+        </div> -->
+
+    </div>
 </template>
 
 <script>
+    import { ref, computed, onMounted, toRefs} from 'vue';
     export default {
         name: 'client-table',
         props:{
@@ -47,67 +69,86 @@
                 default: () =>{
                     return {
                         time: 1000,
+                        perPages: [5,10,20,30,40,50]
                     }
                 }
             },
         },
-        data() {
-            return {
-                filter: [],
-                _debounce: null,
-                data_filter: []
-            };
-        },
-        created(){
-            this.data_filter = this.data
-        }, mounted() {
+        setup(props, context){
+            const { data, options, columns } = toRefs(props);
+            const _debounce =  ref(null);
+            const dataFilter = ref([]);
+            const perPage = ref(options.value.perPages[0]);
+            const perPages = ref([]);
+            const filter = ref([]);
+            const page = ref(0)
+            const totalDate = data.value.length /perPage.value;
 
-        },
-        methods: {
-            debounce(type, column, event){
-                if (this._debounce != null){
-                    clearTimeout(this._debounce);
-                    this._debounce == null;
+            const debounce = (type, column, event)=>{
+                if (_debounce.value != null){
+                    clearTimeout(_debounce.value);
+                    _debounce.value == null;
                 }
-                this._debounce = setTimeout(()=>{
+
+                _debounce.value = setTimeout(()=>{
                     if (type == 'key'){
-                        this.search_word(column ,event);
+                        search_word(column ,event);
                     }else if (type == 'order'){
-                        this.order_by(column ,event);
+                        order_by(column ,event);
                     }
-                }, this.options.time);
-            },
-            verify_columns_by_order(column){
+                }, options.value.time);
+            };
+
+            const VerifyColumnsByOrder = (column)=>{
                 let order = false;
                 if (column.hasOwnProperty('order')){
                     return column.order;
                 }
-
                 return order;
-            },
-            verify_columns_by_filter(column){
+            };
+
+            const VerifyColumnsByFilter = (column)=>{
                 let filter = false;
                 if (column.hasOwnProperty('filter')){
                     return column.filter;
                 }
                 return filter;
-            },
-            verify_row(){
+            }
 
-            },
-            search_word(column, event){
+            const search_word = (column, event) => {
                 if (event.target.value != ''){ // si este ya tiene aplicado algun filtro que vuelva a filtrar en el mismo arreglo
                     let regex = new RegExp(event.target.value);
-                    this.data_filter = this.data.filter( filter => regex.exec(filter[column]) );
+                    dataFilter.value = dataFilter.value.filter( filter => regex.exec(filter[column]) );
                 }else{
-                    this.data_filter = this.data;
+                    dataFilter.value = data.value;
                 }
-            },
-            order_by(column ,event){
-                console.log('sort');
-                console.log(event)
-            },
+            };
 
+            const auto = computed(()=>{
+                return null;
+            });
+
+            onMounted(()=>{
+                console.log(page.value);
+                console.log(perPage.value);
+                console.log(perPage.value / data.value.length )
+                dataFilter.value = data.value;
+                perPages.value = options.value.perPages;
+            });
+
+            return {
+                // var
+                dataFilter,
+                perPage,
+                perPages,
+                totalDate,
+
+                // methods
+                auto,
+                debounce,
+                VerifyColumnsByOrder,
+                VerifyColumnsByFilter
+            }
         }
     };
 </script>
@@ -154,4 +195,31 @@
         
     }
 
+    /* paginator */
+
+    .center {
+        text-align: center;
+    }
+
+    .pagination {
+        display: inline-block;
+    }
+
+    .pagination a {
+        color: black;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        margin: 0 4px;
+    }
+
+    .pagination a.active {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #4CAF50;
+    }
+
+    .pagination a:hover:not(.active) {background-color: #ddd;}
 </style>
