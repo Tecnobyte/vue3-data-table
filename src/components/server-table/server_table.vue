@@ -27,25 +27,32 @@
             </thead>
             <tbody>
                 <template v-if="!loading">
-                    <template v-if="slots.body">
-                        <template  v-for="(record,rowIndex) in records" :key="rowIndex">
-                            <slot name="body" :record="record"></slot>
+                    <template v-if="records.length > 0">
+                        <template v-if="slots.body">
+                            <template  v-for="(record,rowIndex) in records" :key="rowIndex">
+                                <slot name="body" :record="record"></slot>
+                            </template>
+                        </template>
+                        <template v-else>
+                            <tr v-for="(record,rowIndex) in records" :key="rowIndex">
+                                <slot v-if="slots['body-cell']" name="body-cell" :row="record" :index="rowIndex" />
+                                <slot v-else>
+                                    <td v-for="(column,columnIndex) in columns" :key="columnIndex">
+                                        <slot :name="`cell-${column.description}`" :row="record" :index="rowIndex">
+                                            {{ format(record,column) }}
+                                        </slot>
+                                    </td>
+                                </slot>
+                            </tr>
                         </template>
                     </template>
-
                     <template v-else>
-                        <tr v-for="(record,rowIndex) in records" :key="rowIndex">
-                            <slot v-if="slots['body-cell']" name="body-cell" :row="record" :index="rowIndex" />
-                            <slot v-else>
-                                <td v-for="(column,columnIndex) in columns" :key="columnIndex">
-                                    <slot :name="`cell-${column.description}`" :row="record" :index="rowIndex">
-                                        {{ format(record,column) }}
-                                    </slot>
-                                </td>
-                            </slot>
+                        <tr>
+                            <td :colspan="columns.length">
+                                Sin resultados...
+                            </td>
                         </tr>
                     </template>
-                    
                 </template>
                 <template v-else>
                     <tr>
