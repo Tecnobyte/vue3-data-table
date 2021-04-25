@@ -28,25 +28,39 @@
             </thead>
 
             <tbody>
-                <tr v-for="(row, i) of dataFilter" :key="i" class="tr-row-data">
-                    <td v-for="column of columns" :key="column" class="td-row-data">
-                        <slot :name="column.description" :row="row" :index="i">
-                            {{ row[column.description] }}    
-                        </slot>
-                    </td>
-                </tr>
+                <template v-if="loader">
+                    <tr v-for="(row, i) of dataFilter" :key="i" class="tr-row-data">
+                        <td v-for="column of columns" :key="column" class="td-row-data">
+                            <slot :name="column.description" :row="row" :index="i">
+                                {{ format(row, column) }}
+                            </slot>
+                        </td>
+                    </tr>
+                </template>
+
+                <template v-else>
+                    <tr>
+                        <td :colspan="columns.length">
+                            <slot name="load">
+                                {{options.text}}
+                            </slot>
+                        </td>
+                    </tr>
+                </template>
+
+
             </tbody>
         </table>
 
-        <!-- <div class="center">
+        <div class="center">
             <div class="pagination">
-                <a href="#">&laquo;</a>
-                <a href="#">&lt;</a>
-                <a v-for="i of totalDate" href="#">{{i}}</a>
-                <a href="#">&gt;</a>
-                <a href="#">&raquo;</a>
+                <a href="#" @click="changePage('first')">&laquo;</a>
+                <a href="#" @click="changePage('previo')">&lt;</a>
+                <a v-for="i of totalPage" href="#" :key="i" @click="pageSelect(i)" :class="page == i ? 'active' : ''">{{i}}</a>
+                <a href="#" @click="changePage('next')">&gt;</a>
+                <a href="#" @click="changePage('last')">&raquo;</a>
             </div>
-        </div> -->
+        </div>
 
     </div>
 </template>
@@ -69,7 +83,10 @@
                 default: () =>{
                     return {
                         time: 1000,
-                        perPages: [5,10,20,30,40,50]
+                        perPages: [5,10,20,30,40,50],
+                        text:{
+                            loading: 'loading...'
+                        }
                     }
                 }
             },
@@ -78,17 +95,20 @@
             const { data, options, columns } = toRefs(props);
             const _debounce =  ref(null);
             const dataFilter = ref([]);
-            const perPage = ref(options.value.perPages[0]);
-            const perPages = ref([]);
-            const filter = ref([]);
-            const page = ref(0)
-            const totalDate = data.value.length /perPage.value;
+            const loader = ref(false);
+
+            // var pages
+            const perPages = ref([]); // array limits data por pages
+            const perPage = ref(options.value.perPages[0]); // limit data for page
+            const totalPage = ref(Math.ceil(data.value.length /perPage.value)); // total page
+            const page = ref(1) // page actual
 
             const debounce = (type, column, event)=>{
                 if (_debounce.value != null){
                     clearTimeout(_debounce.value);
                     _debounce.value == null;
                 }
+                loader.value = false;
 
                 _debounce.value = setTimeout(()=>{
                     if (type == 'key'){
@@ -96,9 +116,9 @@
                     }else if (type == 'order'){
                         order_by(column ,event);
                     }
+                    loader.value = true;
                 }, options.value.time);
             };
-
             const VerifyColumnsByOrder = (column)=>{
                 let order = false;
                 if (column.hasOwnProperty('order')){
@@ -106,7 +126,6 @@
                 }
                 return order;
             };
-
             const VerifyColumnsByFilter = (column)=>{
                 let filter = false;
                 if (column.hasOwnProperty('filter')){
@@ -114,25 +133,68 @@
                 }
                 return filter;
             }
-
+            const format = (record,column) => {
+                return column.hasOwnProperty('format') ? column.format(record) : record[column.description]; 
+            }
             const search_word = (column, event) => {
                 if (event.target.value != ''){ // si este ya tiene aplicado algun filtro que vuelva a filtrar en el mismo arreglo
                     let regex = new RegExp(event.target.value);
-                    dataFilter.value = dataFilter.value.filter( filter => regex.exec(filter[column]) );
+                    dataFilter.value = data.value.filter( filter => regex.exec(filter[column]) );
+                    // falta agregar que cuando se escriba para un filtro, este se recalcule la cantidad de paginas y se realize un slice a la informacion
+
+                    // totalPage.value = Math.ceil(dataFilter.value.length /perPage.value)
+                    // dataFilter.value = dataFilter.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
                 }else{
                     dataFilter.value = data.value;
                 }
             };
 
+            const onChangedPerPage = () =>{
+                page.value = 1;
+                debounce('load');
+                totalPage.value = Math.ceil(data.value.length /perPage.value)
+                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+            }
+
+            const changePage = (action)=>{
+                if (action == 'first'){
+                    if (page.value == 1){
+                        return false;
+                    }
+                    page.value = 1;
+                }else if(action == 'previo'){
+                    if (page.value == 1){
+                        return false;
+                    }
+                    page.value--;
+                }else if(action == 'next'){
+                    if (page.value == totalPage.value){
+                        return false;
+                    }
+                    page.value++;
+                }else if(action == 'last'){
+                    if (page.value == totalPage.value){
+                        return false;
+                    }
+                    page.value = totalPage.value;
+                }
+                debounce('load');
+                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+
+            }
+            const pageSelect = (i) =>{
+                page.value = i;
+                debounce('load');
+                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+            }
+
+            // const vue
             const auto = computed(()=>{
                 return null;
             });
-
             onMounted(()=>{
-                console.log(page.value);
-                console.log(perPage.value);
-                console.log(perPage.value / data.value.length )
-                dataFilter.value = data.value;
+                debounce('load');
+                dataFilter.value = data.value.slice( ( (page.value -1) * perPage) , ( (page.value -1) * perPage.value) + perPage.value );
                 perPages.value = options.value.perPages;
             });
 
@@ -141,13 +203,15 @@
                 dataFilter,
                 perPage,
                 perPages,
-                totalDate,
+                totalPage,
+                page,
+                loader,
 
                 // methods
                 auto,
-                debounce,
-                VerifyColumnsByOrder,
-                VerifyColumnsByFilter
+                debounce, VerifyColumnsByOrder, VerifyColumnsByFilter, format,
+                // page
+                onChangedPerPage,pageSelect, changePage
             }
         }
     };
