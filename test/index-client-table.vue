@@ -6,6 +6,10 @@
                 <button @click="pais(row, index)">seleccion</button>
             </div>
         </template>
+
+        <!-- <template #load>
+            cargando
+        </template> -->
     </client-table>
 </template>
 
@@ -18,7 +22,8 @@ import { ClientTable } from './../src/main';
                     description: 'id',
                     filter: false,
                     order: false,
-                    header: 'ID'
+                    header: 'ID',
+                    format: (row) => `${row.id}`
                 },
                 {
                     description: 'descripcion',
@@ -76,6 +81,26 @@ import { ClientTable } from './../src/main';
                 },{
                     id: 7,
                     descripcion: 'america',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 8,
+                    descripcion: 'africa',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 9,
+                    descripcion: 'europa',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 10,
+                    descripcion: 'asia',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 11,
+                    descripcion: 'oceania',
                     origen: 'continente',
                     poblacion: 1600000
                 }
