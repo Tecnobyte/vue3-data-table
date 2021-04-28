@@ -1,7 +1,14 @@
 <template>
     <h1>Server table</h1>
     <server-table :columns="columns" :url="url" @loaded="loaded">
-        
+
+        <template v-slot:no-data>
+            No hay datos
+        </template>    
+
+        <template v-slot:loading>
+            Esta cargando...
+        </template>        
     </server-table>
 </template>
 
