@@ -107,7 +107,10 @@ import { ClientTable } from './../src/main';
             ];
             let option = {
                 time: 500,
-                perPages: [5, 10, 20]
+                perPages: [5, 10, 20],
+                text:{
+                    loading: 'loading...'
+                }
             };
 
             const pais = (row, index) =>{
