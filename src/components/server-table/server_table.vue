@@ -37,7 +37,7 @@
                             </template>
                         </template>
                         <template v-else>
-                            <tr v-for="(record,rowIndex) in records" :key="rowIndex">
+                            <tr class="" v-for="(record,rowIndex) in records" :key="rowIndex">
                                 <slot v-if="slots['body-cell']" name="body-cell" :row="record" :index="rowIndex" />
                                 <slot v-else>
                                     <td v-for="(column,columnIndex) in columns" :key="columnIndex">
@@ -252,6 +252,7 @@ export default {
     
     width: 100%;
     border-collapse: collapse;
+    border: 1px solid #e1e1e1;
     /* overflow: hidden; */
 }
 
@@ -261,10 +262,16 @@ export default {
 
 
 .tecno-table td,th {
-    padding-top: 16px;
+    padding: 16px;
+    /* padding-top: 16px;
     padding-bottom: 16px;
+    padding-left: 16px; */
     font-family: "Lato-Regular";
 
+}
+
+.tecno-table td,th{
+    border-right: 1px solid #e1e1e1;
 }
 
 .input{

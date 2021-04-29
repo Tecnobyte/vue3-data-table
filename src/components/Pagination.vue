@@ -109,12 +109,12 @@ export default {
     height: 25px;
     background-color: transparent;
     color: #222;
-    border: 2px solid #ddd;
+    border: 1px solid #ddd;
     display: inline-block;
     vertical-align: middle;
     line-height: 25px;
     text-decoration: none;
-    border-radius: 50%;
+    /* border-radius: 50%; */
     font-weight: 700;
     margin: 4px;
     transition: all 0.2s linear;
