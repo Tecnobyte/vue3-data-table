@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :style="{ overflowX:'auto'}">
         
         <div>
             <select v-model="perPage" @change="onChangedPerPage">
@@ -8,26 +8,25 @@
                 </option>
             </select>
         </div>
-        <table :class="classes.table" :style="{ marginTop:'.75rem'}">
+        <table :class="tema.table" :style="{ marginTop:'.75rem'}">
             <thead>
                 <tr >
                     <th v-for="(column,index) in columns" :key="index">
                         <slot :name="`header-${column.description}`">
                             {{ column.header || column.description }}
                         </slot>
-                        <slot :name="`header-filter-${column.description}`" :handler="searchWithFilter">
+                        <!-- <slot :name="`header-filter-${column.description}`" :handler="searchWithFilter">
                             <input :class="classes.input" type="text" v-if="column.filter" :placeholder="column.description" @input="(evt) => searchWithFilter(evt,column.description)">
-                        </slot>
-                        
+                        </slot> -->
                     </th>
                 </tr>
-                 <!-- <tr>
+                 <tr>
                     <th v-for="(column,index) in columns" :key="index">
                         <slot :name="`header-filter-${column.description}`">
-                            <input :class="classes.input" type="text" v-if="column.filter" :placeholder="column.description" @input="(evt) => searchWithFilter(evt,column.description)">
+                            <input :class="tema.input" type="text" v-if="column.filter" :placeholder=" column.header || column.description" @input="(evt) => searchWithFilter(evt,column.description)">
                         </slot>
                     </th>
-                </tr> -->
+                </tr>
             </thead>
             <tbody>
                 <template v-if="!loading">
@@ -67,32 +66,31 @@
                 <tr v-if="loading">
                     <td :colspan="columns.length">
                         <slot name="loading">
-                            Cargando...
+                            <div :style="{display:'flex',justifyContent:'center'}">
+                                <div class="on-load">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
+                            
                         </slot>
                     </td>
                 </tr>
                 
             </tbody>
         </table>
-        <div v-if="pagination > 0" class="pagination">
-            <a @click="firstPage">&laquo;</a>
-            <a @click="prevPage">&lt;</a>
-            <template v-for="(pagina,index) in paginate">
-                <template v-if="index == indexPaginate">
-                    <a v-for="(item,pageIndex) in pagina" :key="pageIndex" @click="changePage(item,pagina)" :class="{'active' : page == item }">
-                        {{ item }}
-                    </a>
-                </template>
-            </template>
-            <a @click="nextPage">&gt;</a>
-            <a @click="lastPage">&raquo;</a>
-        </div>
+
+        <pagination :theme="theme.pagination" :paginates="paginate" :pagination="pagination" @inputPage="inputPage" />
     </div>
 </template>
 
 <script>
+import Pagination from '../Pagination.vue';
+import {Themes} from '../../themes/themes.js';
 import { ref,watch,toRefs,onMounted } from 'vue';
 export default {
+    components:{
+        Pagination
+    },
     props:{
         url:{
             type: String,
@@ -106,25 +104,17 @@ export default {
             type: Object,
             required: true
         },
-        classes:{
-            type:Object,
-            default:() => {
-                return {
-
-                    table : {
-                        'fl-table' : true,
-                    },
-                    input:{
-                        'input' : true
-                    }
-                }
-            },
-            required:true,
+        theme:{
+            type:String,
+            default:'default'
+        },
+        customThem:{
+            type:Object
         }
     },
     setup(props,{ emit,slots }){
         
-        const { url,options,request } = toRefs(props);
+        const { url,options,request,theme,customThem } = toRefs(props);
         const records = ref([]);
         const count = ref(0); 
         const page = ref(1);
@@ -136,11 +126,13 @@ export default {
         const perPages = ref([]);
         const loading = ref(false);
         const timeOut = ref(null);
+        const tema = customThem ? customThem : Themes[theme.value];
 
         perPages.value =  options ? options.perPages || [5,10,20,30,40,50] : [5,10,20,30,40,50];
 
         const onRequest = request ? request : async () => {
-            let api = `${url.value}?query=${JSON.stringify(query.value)}&page=${page.value}&limit=${perPage.value}`;
+            let symbol = /.\?/gi.test(url.value) ? '&' : '?';
+            let api = `${url.value}${symbol}query=${JSON.stringify(query.value)}&page=${page.value}&limit=${perPage.value}`;
             const response = await fetch(api,{
                 method:'GET',
                 headers: {
@@ -167,38 +159,9 @@ export default {
             fetchData();
         }
 
-        const nextPage = () => {
-            if(page.value < pagination.value){
-                page.value++;
-                indexPaginate.value = paginate.value.findIndex( pag => pag.includes(page.value) );
-                fetchData();
-            }
-        }
+        
 
-        const prevPage = () => {
-            if(page.value > 1){
-                page.value--;
-                indexPaginate.value = paginate.value.findIndex( pag => pag.includes(page.value) );
-                fetchData();
-            }
-        }
-
-        const lastPage = () => {
-            page.value = pagination.value;
-            indexPaginate.value = paginate.value.findIndex( pag => pag.includes(page.value) );
-            fetchData();
-        }
-
-        const firstPage = () => {
-            page.value = 1;
-            indexPaginate.value = paginate.value.findIndex( pag => pag.includes(page.value) );
-            fetchData();
-        }
-
-        const changePage = (p) => {
-            page.value = p;
-            fetchData();
-        }
+        
 
         const searchWithFilter = ({target},filter) => {
             let { value } = target;
@@ -216,7 +179,7 @@ export default {
 
 
         watch(url,(url,prevUrl) => {
-            // fetchData();
+            fetchData();
         });
 
         watch(pagination,(newVal)=>{
@@ -233,12 +196,28 @@ export default {
                 paginates.push(tempArray);
             }
             paginate.value = paginates;
+        });
 
+        watch(page,(newVal) => {
+            fetchData();
         })
 
         onMounted(() => {
             fetchData();  
         });
+
+        const inputPage = (p) => {
+            page.value = p;
+        }
+
+        const refresh = () => {
+            page.value = 1;
+            fetchData();
+        }
+
+        const refreshOnPage = () => {
+            fetchData();
+        }
        
 
         return {
@@ -253,14 +232,12 @@ export default {
             slots,
             paginate,
             indexPaginate,
-            changePage,
-            nextPage,
-            prevPage,
             page,
-            firstPage,
-            lastPage,
-            pagination
-            
+            pagination,
+            inputPage,
+            tema,
+            refresh,
+            refreshOnPage
         };
 
     }
@@ -271,134 +248,23 @@ export default {
 <style scoped>
 
 
-
-.fl-table {
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: normal;
-    border: none;
-    border-collapse: collapse;
+.tecno-table{
+    
     width: 100%;
-    max-width: 100%;
-    white-space: nowrap;
-    background-color: white;
-}
-
-.fl-table td, .fl-table th {
-    text-align: center;
-    padding: 8px;
-}
-
-.fl-table td {
-    border-right: 1px solid #f8f8f8;
-    font-size: 12px;
-}
-
-.fl-table thead th {
-    color: #ffffff;
-    background: #4FC3A1;
+    border-collapse: collapse;
+    /* overflow: hidden; */
 }
 
 
-.fl-table thead th:nth-child(odd) {
-    color: #ffffff;
-    background: #324960;
-}
+.tecno-table tr:nth-child(odd)  { background: #e6eff3; } 
+.tecno-table tr:nth-child(even) { background: #ffffff; } 
 
-.fl-table tr:nth-child(even) {
-    background: #F8F8F8;
-}
 
-/* Responsive */
+.tecno-table td,th {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    font-family: "Lato-Regular";
 
-@media (max-width: 767px) {
-    .fl-table {
-        display: block;
-        width: 100%;
-    }
-    .table-wrapper:before{
-        content: "Scroll horizontally >";
-        display: block;
-        text-align: right;
-        font-size: 11px;
-        color: white;
-        padding: 0 0 10px;
-    }
-    .fl-table thead, .fl-table tbody, .fl-table thead th {
-        display: block;
-    }
-    .fl-table thead th:last-child{
-        border-bottom: none;
-    }
-    .fl-table thead {
-        float: left;
-    }
-    .fl-table tbody {
-        width: auto;
-        position: relative;
-        overflow-x: auto;
-    }
-    .fl-table td, .fl-table th {
-        padding: 20px .625em .625em .625em;
-        height: 60px;
-        vertical-align: middle;
-        box-sizing: border-box;
-        overflow-x: hidden;
-        overflow-y: auto;
-        width: 120px;
-        font-size: 13px;
-        text-overflow: ellipsis;
-    }
-    .fl-table thead th {
-        text-align: left;
-        border-bottom: 1px solid #f7f7f9;
-    }
-    .fl-table tbody tr {
-        display: table-cell;
-    }
-    .fl-table tbody tr:nth-child(odd) {
-        background: none;
-    }
-    .fl-table tr:nth-child(even) {
-        background: transparent;
-    }
-    .fl-table tr td:nth-child(odd) {
-        background: #F8F8F8;
-        border-right: 1px solid #E6E4E4;
-    }
-    .fl-table tr td:nth-child(even) {
-        border-right: 1px solid #E6E4E4;
-    }
-    .fl-table tbody td {
-        display: block;
-        text-align: center;
-    }
-}
-
-.pagination a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-  border: 1px solid #ddd;
-}
-
-.pagination a.active {
-  background-color: #4CAF50;
-  color: white;
-  border: 1px solid #4CAF50;
-}
-
-.pagination a:hover:not(.active) {background-color: #ddd;}
-
-.pagination a:first-child {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-
-.pagination a:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
 }
 
 .input{
@@ -408,5 +274,41 @@ export default {
     border-bottom: 1px solid #ccc;
     width: 100%;
 }
+
+.on-load {
+    opacity: 0;
+    animation: fade-in-up 1s forwards;
+}
+ @keyframes fade-in-up {
+	 from {
+		 opacity: 0;
+		 transform: translateY(8px);
+	}
+	 to {
+		 opacity: 1;
+		 transform: translateY(0);
+	}
+}
+ .spinner {
+	 pointer-events: none;
+	 width: 32px;
+	 height: 32px;
+	 border: 2px solid transparent;
+	 border-color: #f2f2f2;
+	 border-top-color: #7769e4;
+	 border-radius: 50%;
+	 animation: spin 1s, colour-wheel 3s;
+	 animation-iteration-count: infinite;
+	 animation-timing-function: ease-in-out;
+}
+ @keyframes spin {
+	 0% {
+		 transform: rotateZ(0);
+	}
+	 100% {
+		 transform: rotateZ(360deg);
+	}
+}
+ 
 
 </style>

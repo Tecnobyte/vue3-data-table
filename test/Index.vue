@@ -3,6 +3,8 @@
     <index-client-table v-if="client" />
     <index-server-table v-else >
     </index-server-table>
+
+    <hola />
 </template>
 <script>
 
