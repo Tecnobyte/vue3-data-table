@@ -1,13 +1,20 @@
 <template>
     <h1>Server table</h1>
-    <server-table :columns="columns" :url="url" @loaded="loaded">
-        
+    <server-table ref="tabla" :columns="columns" :url="url" @loaded="loaded">
+
+        <template v-slot:no-data>
+            No hay datos
+        </template>    
+
+        <!-- <template v-slot:loading>
+            Esta cargando...
+        </template>         -->
     </server-table>
 </template>
 
 <script>
 import { ServerTable } from './../src/main';
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 export default {
     components: {
@@ -15,7 +22,11 @@ export default {
     },
     setup() {
         let data = ref([]);
-        let url = 'http://test-server-table.test/api/get-personas';
+        let url = ref('http://test-server-table.test/api/get-personas') ;
+
+        const tabla = ref(null);
+
+        
         let columns = [
             {
                 description: 'id',
@@ -31,19 +42,30 @@ export default {
             },
             {
                 description: 'last_name',
+                header:'Apellido Paterno',
                 filter: true,
                 order: false
             },
             {
                 description: 'number',
+                header:'Número',
                 filter: true,
                 order: false
             },
         ];
 
+        onMounted(() => {
+
+            setTimeout(() => {
+                tabla.value.refresh();
+            }, 5000);
+            // console.log(tabla.value);
+        });
+
         return {
             columns,
-            url
+            url,
+            tabla
         };
 
     }
