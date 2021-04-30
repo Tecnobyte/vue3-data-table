@@ -7,9 +7,9 @@
             </div>
         </template>
 
-        <!-- <template #load>
-            cargando
-        </template> -->
+        <template #load>
+            cargando...
+        </template>
     </client-table>
 </template>
 
