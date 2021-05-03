@@ -1,6 +1,6 @@
 <template>
     <h1>Server table</h1>
-    <server-table ref="tabla" :columns="columns" :url="url" @loaded="loaded">
+    <server-table ref="tabla" :columns="columns" :url="url" @loaded="loaded" >
 
         <template v-slot:no-data>
             No hay datos
@@ -54,6 +54,13 @@ export default {
             },
         ];
 
+        const response = (response) => {
+            return{
+                data:response.datos,
+                count:response.total_datos
+            }
+        }
+
         onMounted(() => {
 
             setTimeout(() => {
@@ -65,7 +72,8 @@ export default {
         return {
             columns,
             url,
-            tabla
+            tabla,
+            response
         };
 
     }
