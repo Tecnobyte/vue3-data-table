@@ -11,13 +11,17 @@
         <table :class="tema.table" :style="{ marginTop:'.75rem'}">
             <thead>
                 <tr >
-                    <th v-for="(column,index) in columns" :key="index">
+                    <th v-for="(column,index) in columns" :key="index" @click="column.filterable ? filter(column) : null" >
                         <slot :name="`header-${column.description}`">
                             {{ column.header || column.description }}
                         </slot>
                         <!-- <slot :name="`header-filter-${column.description}`" :handler="searchWithFilter">
                             <input :class="classes.input" type="text" v-if="column.filter" :placeholder="column.description" @input="(evt) => searchWithFilter(evt,column.description)">
                         </slot> -->
+                        <template v-if="column.filterable">
+                            <span v-if="column.direction === 'asc'">&darr;</span>
+                            <span v-else>&uarr;</span>
+                        </template>
                     </th>
                 </tr>
                  <tr>
@@ -110,11 +114,21 @@ export default {
         },
         customThem:{
             type:Object
+        },
+        responseAdapter:{
+            type:Function,
+            default:function(response) {
+                const { count,data } = response;
+                return {
+                    count:count,
+                    data:data
+                };            
+            }
         }
     },
     setup(props,{ emit,slots }){
         
-        const { url,options,request,theme,customThem } = toRefs(props);
+        const {columns, url,options,request,theme,customThem,responseAdapter } = toRefs(props);
         const records = ref([]);
         const count = ref(0); 
         const page = ref(1);
@@ -127,12 +141,20 @@ export default {
         const loading = ref(false);
         const timeOut = ref(null);
         const tema = customThem ? customThem : Themes[theme.value];
-
+        const direction = ref('asc');
+        const column = ref(null);
         perPages.value =  options ? options.perPages || [5,10,20,30,40,50] : [5,10,20,30,40,50];
+
+        for(let col of columns.value ){
+            if(col.filterable){ 
+                column.value = col.description;
+                break;
+            }
+        }
 
         const onRequest = request ? request : async () => {
             let symbol = /.\?/gi.test(url.value) ? '&' : '?';
-            let api = `${url.value}${symbol}query=${JSON.stringify(query.value)}&page=${page.value}&limit=${perPage.value}`;
+            let api = `${url.value}${symbol}query=${JSON.stringify(query.value)}&page=${page.value}&limit=${perPage.value}&direction=${direction.value}${ column.value ? '&column='+column.value : ''}`;
             const response = await fetch(api,{
                 method:'GET',
                 headers: {
@@ -145,7 +167,8 @@ export default {
 
         const fetchData = async () => {
             loading.value = true;
-            const { count:total,data } = await onRequest();
+            const response = await onRequest();
+            const { count:total,data } = responseAdapter.value(response);
             count.value = total;
             pagination.value = parseInt(total / perPage.value);
             records.value = data;
@@ -157,11 +180,7 @@ export default {
         const onChangedPerPage = () => {
             page.value = 1;
             fetchData();
-        }
-
-        
-
-        
+        } 
 
         const searchWithFilter = ({target},filter) => {
             let { value } = target;
@@ -170,6 +189,13 @@ export default {
             timeOut.value = setTimeout(() => {
                 fetchData();
             }, 500);
+        }
+
+        const filter = (col) => {
+            direction.value = col.direction === 'asc' ? 'desc' : 'asc';
+            col.direction = direction.value;
+            column.value = col.description;
+            fetchData();
         }
 
 
@@ -237,7 +263,9 @@ export default {
             inputPage,
             tema,
             refresh,
-            refreshOnPage
+            refreshOnPage,
+            direction,
+            filter
         };
 
     }
@@ -272,6 +300,7 @@ export default {
 
 .tecno-table td,th{
     border-right: 1px solid #e1e1e1;
+    border-left: 1px solid #e1e1e1;
 }
 
 .input{
