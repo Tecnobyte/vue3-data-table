@@ -50,23 +50,30 @@
             </table>
         </div>
 
+        <pagination :theme="theme.pagination" :paginates="paginate" :pagination="pagination" @inputPage="inputPage" />
+
         <!-- paginador de la tabla -->
-        <ul class="page">
+        <!-- <ul class="page">
             <li class="page__btn active" @click="changePage('first')">&laquo;</li>
             <li class="page__btn active" @click="changePage('previo')">&lt;</li>
             <li v-for="i of totalPage" href="#" :key="i" @click="pageSelect(i)" class="page__numbers" :class="page == i ? 'active' : ''">{{i}}</li>
-            <!-- <li class="page__dots">...</li> -->
+            <li class="page__dots">...</li>
             <li class="page__btn active" @click="changePage('next')">&gt;</li>
             <li class="page__btn active" @click="changePage('last')">&raquo;</li>
-        </ul>
+        </ul> -->
 
     </div>
 </template>
 
 <script>
     import { ref, computed, onMounted, toRefs} from 'vue';
+    import Pagination from '../Pagination.vue';
+
     export default {
         name: 'client-table',
+        components:{
+            Pagination
+        },
         props:{
             data: {
                 type: Array,
