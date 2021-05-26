@@ -8,6 +8,7 @@
                 </option>
             </select>
         </div>
+        
         <table :class="tema.table" :style="{ marginTop:'.75rem'}">
             <thead>
                 <tr >
