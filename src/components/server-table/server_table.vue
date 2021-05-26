@@ -124,6 +124,19 @@ export default {
                     data:data
                 };            
             }
+        },
+        request:{
+            type:Function,
+            default:async function(api){
+                const response = await fetch(api,{
+                    method:'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                });
+                return response.json();
+            }
         }
     },
     setup(props,{ emit,slots }){
@@ -152,17 +165,11 @@ export default {
             }
         }
 
-        const onRequest = request ? request : async () => {
+        const onRequest = async () => {
             let symbol = /.\?/gi.test(url.value) ? '&' : '?';
             let api = `${url.value}${symbol}query=${JSON.stringify(query.value)}&page=${page.value}&limit=${perPage.value}&direction=${direction.value}${ column.value ? '&column='+column.value : ''}`;
-            const response = await fetch(api,{
-                method:'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            });
-            return await response.json();
+            const response = await request.value(api); 
+            return response;
         }
 
         const fetchData = async () => {

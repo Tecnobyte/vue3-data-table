@@ -15,6 +15,7 @@
 <script>
 import { ServerTable } from './../src/main';
 import { onMounted, ref } from 'vue'
+// import Axios from 'axios';
 
 export default {
     components: {
@@ -61,6 +62,11 @@ export default {
             }
         }
 
+        // const request = async(url) => {
+        //     const { data } = await Axios.get(url);
+        //     return data;
+        // }
+
         onMounted(() => {
 
             setTimeout(() => {
@@ -73,7 +79,8 @@ export default {
             columns,
             url,
             tabla,
-            response
+            response,
+            request
         };
 
     }
