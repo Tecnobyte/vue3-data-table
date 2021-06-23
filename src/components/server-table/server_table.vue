@@ -299,9 +299,6 @@ export default {
             refreshOnPage,
             direction,
             filter,
-            inicio,
-            fin,
-            count,
             showText
         };
 
