@@ -1,6 +1,6 @@
 <template>
     <h1>Server table</h1>
-    <server-table ref="tabla" :columns="columns" :url="url" @loaded="loaded" >
+    <server-table ref="tabla" :columns="columns" :url="url" @loaded="loaded" texts="Mostrando {from} a {to} de {count}" >
 
         <template v-slot:no-data>
             No hay datos
@@ -80,7 +80,7 @@ export default {
             url,
             tabla,
             response,
-            request
+            // request
         };
 
     }
