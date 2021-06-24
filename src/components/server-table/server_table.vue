@@ -1,6 +1,5 @@
 <template>
     <div :style="{ overflowX:'auto'}">
-        
         <div>
             <select v-model="perPage" @change="onChangedPerPage">
                 <option v-for="(page,index) in perPages" :key="index" :value="page">
@@ -84,6 +83,8 @@
             </tbody>
         </table>
 
+        <div v-if="!loading" class="texts">{{ showText }}</div>
+
         <pagination :theme="theme.pagination" :paginates="paginate" :pagination="pagination" @inputPage="inputPage" />
     </div>
 </template>
@@ -91,7 +92,7 @@
 <script>
 import Pagination from '../Pagination.vue';
 import {Themes} from '../../themes/themes.js';
-import { ref,watch,toRefs,onMounted } from 'vue';
+import { ref,watch,toRefs,onMounted, computed } from 'vue';
 export default {
     components:{
         Pagination
@@ -114,7 +115,13 @@ export default {
             default:'default'
         },
         customThem:{
-            type:Object
+            type:Object|null,
+            default:null
+        },
+
+        texts:{
+            type:String,
+            default:`Showing {from} to {to} from {count}`
         },
         responseAdapter:{
             type:Function,
@@ -138,11 +145,11 @@ export default {
                 });
                 return response.json();
             }
-        }
+        },
     },
     setup(props,{ emit,slots }){
         
-        const {columns, url,options,request,theme,customThem,responseAdapter } = toRefs(props);
+        const {columns, url,options,request,theme,customThem,responseAdapter,texts } = toRefs(props);
         const records = ref([]);
         const count = ref(0); 
         const page = ref(1);
@@ -154,9 +161,11 @@ export default {
         const perPages = ref([]);
         const loading = ref(false);
         const timeOut = ref(null);
-        const tema = customThem ? customThem : Themes[theme.value];
+        const tema = customThem.value ? customThem.value : Themes[theme.value];
         const direction = ref('asc');
         const column = ref(null);
+        let inicio = ref(0);
+        let fin = ref(null);
         perPages.value =  options ? options.perPages || [5,10,20,30,40,50] : [5,10,20,30,40,50];
 
         for(let col of columns.value ){
@@ -182,6 +191,7 @@ export default {
             records.value = data;
             loading.value = false;
             query.value = {};
+            calculate()
             emit('loaded',{data:records.value,count:count.value});
         };
 
@@ -229,6 +239,8 @@ export default {
                 let tempArray = tempArrayPaginates.slice(index,index+chunk);
                 paginates.push(tempArray);
             }
+
+           
             paginate.value = paginates;
         });
 
@@ -252,6 +264,19 @@ export default {
         const refreshOnPage = () => {
             fetchData();
         }
+
+
+        const calculate = () => {
+            inicio.value = ((page.value-1) * perPage.value) + 1;
+            fin.value = (perPage.value * ( page.value) )- (perPage.value - records.value.length);
+        }
+
+
+        const showText = computed(() => {
+            return texts.value.replace(/{from}/g,inicio.value)
+            .replace(/{to}/g,fin.value)
+            .replace(/{count}/,count.value);
+        });
        
 
         return {
@@ -273,7 +298,8 @@ export default {
             refresh,
             refreshOnPage,
             direction,
-            filter
+            filter,
+            showText
         };
 
     }
@@ -319,6 +345,11 @@ export default {
     width: 100%;
 }
 
+.texts{
+    text-align: center;
+    font-size: 18px;
+}
+
 .on-load {
     opacity: 0;
     animation: fade-in-up 1s forwards;
@@ -352,7 +383,6 @@ export default {
 	 100% {
 		 transform: rotateZ(360deg);
 	}
-}
- 
+} 
 
 </style>
