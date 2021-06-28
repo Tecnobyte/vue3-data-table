@@ -14,26 +14,27 @@
 </template>
 
 <script>
-import { ClientTable } from './../src/main';
+    import { ClientTable } from './../src/main';
+
     export default {
         setup() {
             let column = [
                 {
                     description: 'id',
-                    filter: false,
+                    filter: true,
                     order: false,
                     header: 'ID',
                     format: (row) => `${row.id}`
                 },
                 {
                     description: 'descripcion',
-                    filter: true,
+                    filter: false,
                     order: false,
                     header: 'DESCRIPCION'
                 },
                 {
                     description: 'origen',
-                    filter: true,
+                    filter: false,
                     order: false
                 },
                 {
@@ -129,7 +130,6 @@ import { ClientTable } from './../src/main';
 
             }
         },
-
         components: {
             ClientTable
         }

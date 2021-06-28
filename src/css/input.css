@@ -1,0 +1,28 @@
+input::placeholder {
+    /* font-family: 'roboto', sans-serif; */
+    transition: all 0.3s ease-in-out;
+}
+input {
+    width: 100%;
+    border: none;
+    border-bottom: solid 1px #a9a9a9;
+    transition: all 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
+    background-position: -200px 0;
+    background-size: 200px 100%;
+    background-repeat: no-repeat;
+    border-radius: 0.5rem 0.5rem 0 0;
+    margin-top: 4%;
+}
+input:focus:valid {
+    box-shadow: none;
+    outline: none;
+    background-position: 0 0;
+    padding: 2%;
+    width: 95%;
+}
+input:focus:valid::placeholder{
+    font-size: 10px;
+    transform: translateY(-10px);
+    visibility: visible !important;
+    /* padding: 1%; */
+}

@@ -10,26 +10,25 @@
         </div>
 
         <!-- tabla principal -->
-        <div class="table-wrapper">
-            <table class="light-table-theme">
-                <thead class="light-thead-theme">
+        <div class="table-container">
+            <table :class="[css[theme].table.main]">
+                <thead :class="[dark ? 'dark': '', css[theme].table.thead] ">
                     <!-- seccion para las columnas -->
-                    <tr class="tr-columns-description">
-                        <th v-for="(column, i) of columns" :key="i" class="th-columns-description">
-                            {{ (column.hasOwnProperty('header') ) ? column.header : column.description}} <li v-if="VerifyColumnsByOrder(column)" @click="debounce('order', column.description, $event)" class="li-order">o</li>
-                            <!-- // hacer un salto condicional en los inputs -->
+                    <tr>
+                        <th v-for="(column, i) of columns" :key="i">
+                            {{ (column.hasOwnProperty('header') ) ? column.header : column.description}} <li v-if="VerifyColumnsByOrder(column)" @click="order_by(column.description, $event)" class="li-order">o</li>
                             <br>
-                            <div class="form__group field" v-if="VerifyColumnsByFilter(column)"> 
-                                <input type="text" class="light-input-theme" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="debounce('key', column.description, $event)">
+                            <div v-if="VerifyColumnsByFilter(column)"> 
+                                <input type="text" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="search_word(column.description, $event)">
                             </div>
                         </th>
                     </tr>
                 </thead>
 
-                <tbody class="light-tbody-theme">
+                <tbody :class="[css[theme].table.tbody]">
                     <template v-if="loader">
-                        <tr v-for="(row, i) of dataFilter" :key="i" class="tr-row-data">
-                            <td v-for="column of columns" :key="column" class="td-row-data">
+                        <tr v-for="(row, i) of dataFilter" :key="i">
+                            <td v-for="column of columns" :key="column">
                                 <slot :name="column.description" :row="row" :index="i">
                                     {{ format(row, column) }}
                                 </slot>
@@ -47,26 +46,20 @@
                         </tr>
                     </template>
                 </tbody>
+
+                <tfoot>
+                    <pagination :paginates="totalPage" :pagination="page" @inputPage="inputPage" />
+                </tfoot>
             </table>
         </div>
 
-        <pagination :theme="theme.pagination" :paginates="paginate" :pagination="pagination" @inputPage="inputPage" />
-
-        <!-- paginador de la tabla -->
-        <!-- <ul class="page">
-            <li class="page__btn active" @click="changePage('first')">&laquo;</li>
-            <li class="page__btn active" @click="changePage('previo')">&lt;</li>
-            <li v-for="i of totalPage" href="#" :key="i" @click="pageSelect(i)" class="page__numbers" :class="page == i ? 'active' : ''">{{i}}</li>
-            <li class="page__dots">...</li>
-            <li class="page__btn active" @click="changePage('next')">&gt;</li>
-            <li class="page__btn active" @click="changePage('last')">&raquo;</li>
-        </ul> -->
-
+        
     </div>
 </template>
 
 <script>
     import { ref, computed, onMounted, toRefs} from 'vue';
+    import {Themes} from '../../themes/themes.js';
     import Pagination from '../Pagination.vue';
 
     export default {
@@ -87,7 +80,7 @@
                 type: Object,
                 default: () =>{
                     return {
-                        time: 1000,
+                        time: 500,
                         perPages: [5,10,20,30,40,50],
                         text:{
                             loading: 'loading...'
@@ -95,19 +88,28 @@
                     }
                 }
             },
+            theme:{
+                type:String,
+                default: 'default_theme'
+            },
+            dark:{
+                type:Boolean,
+                default: false,
+            }
         },
         setup(props, context){
             const { data, options, columns } = toRefs(props);
             const _debounce =  ref(null);
             const dataFilter = ref([]);
             const loader = ref(false);
+            const css = ref(Themes)
 
             // var pages
+            const page = ref(1) // current page
             const perPages = ref([]); // array limits data por pages
-            const perPage = ref(options.value.perPages[0]); // limit data for page
-            const totalPage = ref(Math.ceil(data.value.length /perPage.value)); // total page
-            const page = ref(1) // page actual
-
+            const perPage = ref(options.value.perPages[0]); // option seect of limit data for page
+            const totalPage = ref([1,2,3]); // total page for the pagination
+            
             const debounce = (type, column, event)=>{
                 if (_debounce.value != null){
                     clearTimeout(_debounce.value);
@@ -153,6 +155,7 @@
                     dataFilter.value = data.value;
                 }
             };
+            const order_by = (column, event)=>{}
 
             const onChangedPerPage = () =>{
                 page.value = 1;
@@ -198,12 +201,13 @@
                 return null;
             });
             onMounted(()=>{
-                debounce('load');
+                loader.value = true;
                 dataFilter.value = data.value.slice( ( (page.value -1) * perPage) , ( (page.value -1) * perPage.value) + perPage.value );
                 perPages.value = options.value.perPages;
             });
 
             return {
+                css,
                 // var
                 dataFilter,
                 perPage,
@@ -214,7 +218,7 @@
 
                 // methods
                 auto,
-                debounce, VerifyColumnsByOrder, VerifyColumnsByFilter, format,
+                debounce, VerifyColumnsByOrder, VerifyColumnsByFilter, format, order_by, search_word,
                 // page
                 onChangedPerPage,pageSelect, changePage
             }
@@ -223,117 +227,5 @@
 </script>
 
 <style scoped>
-    /* estilos de la tabla */
-
-        /* .fl-table {
-            border-radius: 5px;
-            font-size: 20px;
-            font-weight: normal;
-            border: none;
-            border-collapse: collapse;
-            width: 100%;
-            max-width: 100%;
-            white-space: nowrap;
-            background-color: white;
-            box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
-        }
-
-        .fl-table td, .fl-table th {
-            text-align: center;
-            padding: 8px;
-        }
-
-        .fl-table td {
-            border-right: 1px solid #f8f8f8;
-            font-size: 20px;
-        }
-
-        .fl-table thead th {
-            color: #000000;
-            background: #4FC3A1;
-        }
-
-        .fl-table thead th:nth-child(odd) {
-            color: #000000;
-            background: #324960;
-        }
-
-        .fl-table tr:nth-child(even) {
-            background: #F8F8F8;
-        } */
-
-        /* Responsive */
-
-        /* @media (max-width: 767px) {
-            .fl-table {
-                display: block;
-                width: 100%;
-            }
-            .table-wrapper:before{
-                content: "Scroll horizontally >";
-                display: block;
-                text-align: right;
-                font-size: 11px;
-                color: white;
-                padding: 0 0 10px;
-            }
-            .fl-table thead, .fl-table tbody, .fl-table thead th {
-                display: block;
-            }
-            .fl-table thead th:last-child{
-                border-bottom: none;
-            }
-            .fl-table thead {
-                float: left;
-            }
-            .fl-table tbody {
-                width: auto;
-                position: relative;
-                overflow-x: auto;
-            }
-            .fl-table td, .fl-table th {
-                padding: 20px .625em .625em .625em;
-                height: auto;
-                vertical-align: middle;
-                box-sizing: border-box;
-                overflow-x: hidden;
-                overflow-y: auto;
-                width: auto;
-                font-size: 13px;
-                text-overflow: ellipsis;
-            }
-            .fl-table thead th {
-                text-align: left;
-                border-bottom: 1px solid #f7f7f9;
-            }
-            .fl-table tbody tr {
-                display: table-cell;
-            }
-            .fl-table tbody tr:nth-child(odd) {
-                background: none;
-            }
-            .fl-table tr:nth-child(even) {
-                background: transparent;
-            }
-            .fl-table tr td:nth-child(odd) {
-                background: #F8F8F8;
-                border-right: 1px solid #E6E4E4;
-            }
-            .fl-table tr td:nth-child(even) {
-                border-right: 1px solid #E6E4E4;
-            }
-            .fl-table tbody td {
-                display: block;
-                text-align: center;
-            }
-        }
-
-        .li-order{
-
-        }
-        .li-order:hover{
-            cursor: pointer;
-        } */
-    /* fin de los estilos de la tabla */
 
 </style>
