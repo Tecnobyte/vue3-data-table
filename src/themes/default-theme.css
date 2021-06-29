@@ -10,7 +10,7 @@
 .default-thead-table{
     font-size: 1.2rem;
     border-bottom: 1px solid #d0d0d080;
-    box-shadow: 0px 5px 20px 0px #2323233d;
+    /* box-shadow: 0px 5px 20px 0px #2323233d; */
 }
 .default-thead-table > tr > th{
     padding: 0.5rem;

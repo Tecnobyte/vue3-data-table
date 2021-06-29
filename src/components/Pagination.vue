@@ -1,5 +1,5 @@
 <template>
-    <div :class="theme" v-if="pagination > 0" class="pagination">
+    <div v-if="pagination > 0" class="pagination">
         <a @click="firstPage">&laquo;</a>
         <a @click="prevPage">&lt;</a>
         <template v-for="(pagina,index) in paginates">
@@ -17,18 +17,18 @@
 import { ref, toRefs, watch } from 'vue';
 export default {
     props:{
-        paginates:{
+        paginates:{ 
             type:Array,
             default:() => [],
             required:true
         },
-        pagination:{
+        pagination:{ // current page
             type:Number,
             default:0,
             required:true
         },
         theme:{
-            type:String,
+            type:Object,
             default: () =>{ return{'pagination':true} } 
         }
     },
@@ -48,7 +48,6 @@ export default {
                 page.value++;
                 indexPaginate.value = paginates.value.findIndex( pag => pag.includes(page.value) );
                 emit('inputPage',page.value);
-                // fetchData();
             }
         }
 
@@ -57,7 +56,6 @@ export default {
                 page.value--;
                 indexPaginate.value = paginates.value.findIndex( pag => pag.includes(page.value) );
                 emit('inputPage',page.value);
-                // fetchData();
             }
         }
 
@@ -65,20 +63,17 @@ export default {
             page.value = pagination.value;
             indexPaginate.value = paginates.value.findIndex( pag => pag.includes(page.value) );
             emit('inputPage',page.value);
-            // fetchData();
         }
 
         const firstPage = () => {
             page.value = 1;
             indexPaginate.value = paginates.value.findIndex( pag => pag.includes(page.value) );
             emit('inputPage',page.value);
-            // fetchData();
         }
 
         const changePage = (p) => {
             page.value = p;
             emit('inputPage',p);
-            // fetchData();
         }
 
         return {
@@ -89,8 +84,6 @@ export default {
             lastPage,
             firstPage,
             changePage
-
-
         };
 
     }
@@ -99,8 +92,8 @@ export default {
 </script>
 <style scoped>
 .pagination {
-	 text-align: center;
-	 padding: 20px 0;
+    display: flex;
+	padding: 20px 0;
 }
 .pagination a {
     font-family: 'Open Sans';
@@ -110,11 +103,10 @@ export default {
     background-color: transparent;
     color: #222;
     border: 1px solid #ddd;
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 25px;
+    /* display: inline-block; */
+    /* vertical-align: middle; */
+    /* line-height: 25px; */
     text-decoration: none;
-    /* border-radius: 50%; */
     font-weight: 700;
     margin: 4px;
     transition: all 0.2s linear;

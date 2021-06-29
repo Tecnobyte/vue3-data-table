@@ -13,13 +13,12 @@
         <div class="table-container">
             <table :class="[css[theme].table.main]">
                 <thead :class="[dark ? 'dark': '', css[theme].table.thead] ">
-                    <!-- seccion para las columnas -->
                     <tr>
                         <th v-for="(column, i) of columns" :key="i">
                             {{ (column.hasOwnProperty('header') ) ? column.header : column.description}} <li v-if="VerifyColumnsByOrder(column)" @click="order_by(column.description, $event)" class="li-order">o</li>
                             <br>
                             <div v-if="VerifyColumnsByFilter(column)"> 
-                                <input type="text" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="search_word(column.description, $event)">
+                                <input v-model="column.value" type="text" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="search_word()">
                             </div>
                         </th>
                     </tr>
@@ -27,7 +26,7 @@
 
                 <tbody :class="[css[theme].table.tbody]">
                     <template v-if="loader">
-                        <tr v-for="(row, i) of dataFilter" :key="i">
+                        <tr v-for="(row, i) of primary" :key="i">
                             <td v-for="column of columns" :key="column">
                                 <slot :name="column.description" :row="row" :index="i">
                                     {{ format(row, column) }}
@@ -48,17 +47,20 @@
                 </tbody>
 
                 <tfoot>
-                    <pagination :paginates="totalPage" :pagination="page" @inputPage="inputPage" />
+                    <div>
+                        <pagination :paginates="totalPage" :pagination="page" @inputPage="current_page" />
+                    </div>
+                    <!-- mostrando {{primary.length}} de {{data.length}}
+                    {{totalPage}}
+                    {{page}} -->
                 </tfoot>
             </table>
         </div>
-
-        
     </div>
 </template>
 
 <script>
-    import { ref, computed, onMounted, toRefs} from 'vue';
+    import { ref, computed, onMounted, toRefs, watch} from 'vue';
     import {Themes} from '../../themes/themes.js';
     import Pagination from '../Pagination.vue';
 
@@ -68,15 +70,15 @@
             Pagination
         },
         props:{
-            data: {
+            data: { // array of data
                 type: Array,
                 required: true
             },
-            columns: {
+            columns: { // columns table
                 type: Array,
                 required: true
             },
-            options: {
+            options: { //opctions
                 type: Object,
                 default: () =>{
                     return {
@@ -100,15 +102,18 @@
         setup(props, context){
             const { data, options, columns } = toRefs(props);
             const _debounce =  ref(null);
-            const dataFilter = ref([]);
+            const primary = ref([]); // lista principal de la informacion
+            const aux = ref([]); // lista la cua guardare la informacion de la busqueda
+            const aux_2 = ref([]); // lista la cua guardare la informacion de la busqueda
             const loader = ref(false);
             const css = ref(Themes)
-
+            
             // var pages
             const page = ref(1) // current page
             const perPages = ref([]); // array limits data por pages
             const perPage = ref(options.value.perPages[0]); // option seect of limit data for page
-            const totalPage = ref([1,2,3]); // total page for the pagination
+            const totalPage = ref([5]); // total page for the pagination
+            const filterColumn = ref([]);
             
             const debounce = (type, column, event)=>{
                 if (_debounce.value != null){
@@ -144,72 +149,58 @@
                 return column.hasOwnProperty('format') ? column.format(record) : record[column.description]; 
             }
             const search_word = (column, event) => {
-                if (event.target.value != ''){ // si este ya tiene aplicado algun filtro que vuelva a filtrar en el mismo arreglo
-                    let regex = new RegExp(event.target.value);
-                    dataFilter.value = data.value.filter( filter => regex.exec(filter[column]) );
-                    // falta agregar que cuando se escriba para un filtro, este se recalcule la cantidad de paginas y se realize un slice a la informacion
-
-                    // totalPage.value = Math.ceil(dataFilter.value.length /perPage.value)
-                    // dataFilter.value = dataFilter.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
-                }else{
-                    dataFilter.value = data.value;
-                }
+                aux.value = [...data.value];
+                columns.value.forEach(col => {
+                    if(col.hasOwnProperty('value')){
+                        let regex = new RegExp(col.value); // creo la expresion regular para la busqueda
+                        aux.value =  aux.value.filter(filter => regex.exec(filter[col.description]));
+                    }
+                });
+                fnTotalPage(aux.value);
+                filterArray(aux.value);
             };
-            const order_by = (column, event)=>{}
-
-            const onChangedPerPage = () =>{
-                page.value = 1;
-                debounce('load');
-                totalPage.value = Math.ceil(data.value.length /perPage.value)
-                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
-            }
-
-            const changePage = (action)=>{
-                if (action == 'first'){
-                    if (page.value == 1){
-                        return false;
-                    }
-                    page.value = 1;
-                }else if(action == 'previo'){
-                    if (page.value == 1){
-                        return false;
-                    }
-                    page.value--;
-                }else if(action == 'next'){
-                    if (page.value == totalPage.value){
-                        return false;
-                    }
-                    page.value++;
-                }else if(action == 'last'){
-                    if (page.value == totalPage.value){
-                        return false;
-                    }
-                    page.value = totalPage.value;
+            const order_by = ()=>{}
+            // funciones de paginacion
+            const fnTotalPage = (array = null) => { // get total number of page
+                if(array == null){
+                    totalPage.value = [Math.ceil(data.value.length /perPage.value)]
+                }else{
+                    totalPage.value = [Math.ceil(array.length /perPage.value)]
                 }
-                debounce('load');
-                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
-
             }
-            const pageSelect = (i) =>{
-                page.value = i;
-                debounce('load');
-                dataFilter.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+            const onChangedPerPage = () =>{ // event change of number per page
+                page.value = 1;
+                fnTotalPage();
             }
-
+            const current_page = (p)=>{ // get number of page
+                page.value = p;
+            }
+            const filterArray = (array)=>{
+                if(array == null){
+                    primary.value = data.value.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+                }else{
+                    primary.value = array.slice( ( (page.value -1) * perPage.value) , ( (page.value -1) * perPage.value) + perPage.value );
+                }
+            }
             // const vue
-            const auto = computed(()=>{
-                return null;
+            watch(page, (val, old)=>{
+                search_word()
+            });
+            watch(perPage, (val, old)=>{
+                search_word()
             });
             onMounted(()=>{
+                fnTotalPage();
                 loader.value = true;
-                dataFilter.value = data.value.slice( ( (page.value -1) * perPage) , ( (page.value -1) * perPage.value) + perPage.value );
+                primary.value = data.value.slice( ( (page.value -1) * perPage) , ( (page.value -1) * perPage.value) + perPage.value );
                 perPages.value = options.value.perPages;
             });
 
             return {
                 css,
+
                 // var
-                dataFilter,
+                primary, // lista principal 
                 perPage,
                 perPages,
                 totalPage,
@@ -217,10 +208,9 @@
                 loader,
 
                 // methods
-                auto,
                 debounce, VerifyColumnsByOrder, VerifyColumnsByFilter, format, order_by, search_word,
                 // page
-                onChangedPerPage,pageSelect, changePage
+                current_page, onChangedPerPage
             }
         }
     };
