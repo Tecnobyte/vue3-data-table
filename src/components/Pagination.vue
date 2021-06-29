@@ -30,17 +30,23 @@ export default {
         theme:{
             type:Object,
             default: () =>{ return{'pagination':true} } 
+        },
+        server: {
+            type: Boolean,
+            default: true
         }
     },
     setup(props,{emit}){
-        const { pagination,paginates } = toRefs(props);
+        const { pagination,paginates, server } = toRefs(props);
 
         const indexPaginate = ref(0); 
         const page = ref(1);
         
-        watch(paginates,(newVal,oldVal) => {
-            indexPaginate.value = 0;
-            page.value = 1;
+        watch(paginates, (newVal,oldVal) => {
+            if(server.value){
+                indexPaginate.value = 0;
+                page.value = 1;
+            }
         })
 
         const nextPage = () => {

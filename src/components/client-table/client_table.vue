@@ -48,7 +48,7 @@
 
                 <tfoot>
                     <div>
-                        <pagination :paginates="totalPage" :pagination="page" @inputPage="current_page" />
+                        <pagination :paginates="totalPage" :pagination="page" :server="false" @inputPage="current_page" />
                     </div>
                     <!-- mostrando {{primary.length}} de {{data.length}}
                     {{totalPage}}
