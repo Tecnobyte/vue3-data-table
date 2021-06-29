@@ -28,7 +28,7 @@
                 },
                 {
                     description: 'descripcion',
-                    filter: false,
+                    filter: true,
                     order: false,
                     header: 'DESCRIPCION'
                 },
@@ -101,6 +101,61 @@
                     poblacion: 1600000
                 },{
                     id: 11,
+                    descripcion: 'oceania',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },                {
+                    id: 12,
+                    descripcion: 'mexico',
+                    origen: 'pais',
+                    poblacion: 100000,
+                },{
+                    id: 13,
+                    descripcion: 'estados unidos',
+                    origen: 'pais',
+                    poblacion: 200000
+                },{
+                    id: 14,
+                    descripcion: 'españa',
+                    origen: 'pais',
+                    poblacion: 300000
+                },{
+                    id: 15,
+                    descripcion: 'canada',
+                    origen: 'pais',
+                    poblacion: 400000
+                },{
+                    id: 16,
+                    descripcion: 'londres',
+                    origen: 'pais',
+                    poblacion: 500000
+                },{
+                    id: 17,
+                    descripcion: 'china',
+                    origen: 'pais',
+                    poblacion: 600000
+                },{
+                    id: 18,
+                    descripcion: 'america',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 19,
+                    descripcion: 'africa',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 20,
+                    descripcion: 'europa',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 21,
+                    descripcion: 'asia',
+                    origen: 'continente',
+                    poblacion: 1600000
+                },{
+                    id: 22,
                     descripcion: 'oceania',
                     origen: 'continente',
                     poblacion: 1600000
