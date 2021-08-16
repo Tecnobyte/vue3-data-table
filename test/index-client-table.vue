@@ -1,23 +1,42 @@
 <template>
-    <h1>client table</h1>
-    <client-table :columns="column" :data="data" :options="option">
-        <template #menu="{row, index}">
-            <div> 
-                <button @click="pais(row, index)">seleccion</button>
-            </div>
-        </template>
+    <div>
+        <div style=text-aling:center>
+            <h1 >Cliente table</h1>
+        </div>
 
-        <template #load>
-            cargando...
-        </template>
-    </client-table>
+        <div>
+            <client-table :columns="column" :data="data" :options="option">
+                <template #menu="{row, index}">
+                    <div> 
+                        <button @click="pais(row, index)">seleccion</button>
+                    </div>
+                </template>
+
+                <template #load>
+                    cargando...
+                </template>
+            </client-table>
+        </div>
+    </div>
 </template>
 
 <script>
+    /**
+    * importacion de la tabla de tipo cliente
+    */
     import { ClientTable } from './../src/main';
-
     export default {
         setup() {
+            /** 
+            * La creacion de las columnas podra tener n cantidad de atributos, deacuerdo a la informacion que se requiera visualizar en la tabla 
+            * Para ello se declara un arreglo de objetos los cuales tendran los siguientes atributos.
+            * 
+            * description(required): Identifica el valor de los datos que se visualizara en la tabla.
+            * filter(option): Indica si la columna podra ser filtrada o no. Por defecto es false.
+            * order(option): indica si la columna filtrara los datos deacuerdo a un criterio. Por defecto es falso.
+            * header(option): Define un nuevo nombre en caso de asignar otro titulo a la columna. Por defecto se toma el valor del atributo description
+            * format(option): Permite definir un valor especifico pasando un callback que devolvera el valor del objeto de datos pasado
+            */
             let column = [
                 {
                     description: 'id',
@@ -48,6 +67,11 @@
                     order: false
                 }
             ];
+
+            /**
+            * Los datos de la tabla Se establecen como un arreglo de objectos. antes de eso se tiene que haber declarado las columnas de las tabla que permitan
+            * identificar los valores a tomar.
+            */
             let data = [
                 {
                     id: 1,
@@ -161,6 +185,15 @@
                     poblacion: 1600000
                 }
             ];
+
+            /**
+            * Las opciones se establece un conjunto de caracteristicas que tendra la tabla
+            * Se describiran las siguientes opciones:
+            * perPages: Establece el numero de elementos que se pueden seleccionar para mostrar, se le manda un arreglo.
+            * text: Permite el cambio de los texto que se visualizan en la tabla en caso de cambiar, se le manda un objeto y tiene los siquientes atributos:
+            *   - loading: cambia el texto al carga la informacion de la tabla.
+            *   - recordatorio. agregar mas texto para el cambio
+            */
             let option = {
                 time: 500,
                 perPages: [5, 10, 20],
@@ -169,6 +202,18 @@
                 }
             };
 
+            /**
+            * slot
+            * description: el slot description toma el valor del atributo description de las columnas creadas
+            * este retorna el valor de los datos y ademas el index de la tabla en ese momento
+            * ejemplo: menu es una columna
+                <template #menu="{row, index}">
+                    <div> 
+                        <button @click="pais(row, index)">seleccion</button>
+                    </div>
+                </template>
+            * 
+            */
             const pais = (row, index) =>{
                 console.log(row);
                 console.log(index);

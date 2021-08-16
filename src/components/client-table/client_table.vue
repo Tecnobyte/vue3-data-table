@@ -1,22 +1,16 @@
 <template>
-    <div>
-        <!-- select de las tablas -->
-        <div>
-            <select v-model="perPage" @change="onChangedPerPage">
-                <option v-for="(page, index) in perPages" :key="index" :value="page">
-                    {{ page }}
-                </option>
-            </select>
-        </div>
-
-        <!-- tabla principal -->
-        <div class="table-container">
+    <div class="table-container"> <!-- table -->
+        <div class="table-main">
             <table :class="[css[theme].table.main]">
                 <thead :class="[dark ? 'dark': '', css[theme].table.thead] ">
                     <tr>
                         <th v-for="(column, i) of columns" :key="i">
-                            {{ (column.hasOwnProperty('header') ) ? column.header : column.description}} <li v-if="VerifyColumnsByOrder(column)" @click="order_by(column.description, $event)" class="li-order">o</li>
-                            <br>
+                            <div class="text-header">
+                                <span class="over">
+                                    {{ (column.hasOwnProperty('header') ) ? column.header : column.description}} <li v-if="VerifyColumnsByOrder(column)" @click="order_by(column.description, $event)" class="li-order">o</li>
+                                </span>
+                            </div>
+                            
                             <div v-if="VerifyColumnsByFilter(column)"> 
                                 <input v-model="column.value" type="text" :placeholder="(column.hasOwnProperty('header') ) ? column.header : column.description" :name="column.description" v-on:keyup="search_word()">
                             </div>
@@ -45,16 +39,21 @@
                         </tr>
                     </template>
                 </tbody>
-
-                <tfoot>
-                    <div>
-                        <pagination :paginates="totalPage" :pagination="page" :server="false" @inputPage="current_page" />
-                    </div>
-                    <!-- mostrando {{primary.length}} de {{data.length}}
-                    {{totalPage}}
-                    {{page}} -->
-                </tfoot>
             </table>
+        </div>
+
+        <div :class="[css[theme].table.tfooter]">
+            <div class="select-container"> <!-- Select per paginate -->
+                <div>
+                    <span>Per page</span>
+                </div>
+                <div style="margin-left:1rem">
+                    <select class="input_select" v-model="perPage" @change="onChangedPerPage">
+                        <option v-for="(page, index) in perPages" :key="index" :value="page">{{ page }}</option>
+                    </select>
+                </div>
+            </div>
+            <pagination :paginates="totalPage" :pagination="page" :server="false" @inputPage="current_page" />
         </div>
     </div>
 </template>
@@ -101,10 +100,9 @@
         },
         setup(props, context){
             const { data, options, columns } = toRefs(props);
-            const _debounce =  ref(null);
+            const _debounce = ref(null);
             const primary = ref([]); // lista principal de la informacion
             const aux = ref([]); // lista la cua guardare la informacion de la busqueda
-            const aux_2 = ref([]); // lista la cua guardare la informacion de la busqueda
             const loader = ref(false);
             const css = ref(Themes)
             
@@ -113,7 +111,6 @@
             const perPages = ref([]); // array limits data por pages
             const perPage = ref(options.value.perPages[0]); // option seect of limit data for page
             const totalPage = ref([5]); // total page for the pagination
-            const filterColumn = ref([]);
             
             const debounce = (type, column, event)=>{
                 if (_debounce.value != null){
@@ -217,5 +214,10 @@
 </script>
 
 <style scoped>
-
+    .direction-left{
+        float: left;
+    }
+    .over{
+        text-overflow: ellipsis;
+    }
 </style>

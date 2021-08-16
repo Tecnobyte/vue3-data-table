@@ -1,6 +1,15 @@
 .table-container{
-    margin-top: 1%;
+    background: #fff;
+    box-sizing: inherit;
+    margin: 1rem;
+    box-shadow: 2px 2px 2px -1px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 1px 3px 0 rgba(0,0,0,.12)!important;
+    border-radius: 5px 5px 5px 5px;
 }
+
+.table-main{
+    background: #fff;
+}
+
 .dark{
-    color: white;
+    color: #fff;
 }
